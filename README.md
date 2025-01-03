@@ -1,2 +1,2 @@
 # Skitlock
-![Logo](https://github.com/Drepcon/Skitlock/blob/main/Skitlock~7.jpg)
+![Logo](https://github.com/Dacnom28/Skitlock/blob/main/Skitlock~7.jpg)
