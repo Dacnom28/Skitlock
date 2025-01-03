@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skitlock Decrypt Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="file"], input[type="text"] {
+            margin: 10px 0;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .decrypted-files {
+            margin-top: 20px;
+        }
+        .decrypted-files ul {
+            list-style: none;
+            padding: 0;
+        }
+        .decrypted-files li {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Skitlock Decryption Panel</h1>
+        <form id="upload-form">
+            <label for="file">Select Encrypted File:</label>
+            <input type="file" id="file" name="file" required>
+
+            <label for="key">Decryption Key (Hex):</label>
+            <input type="text" id="key" name="key" placeholder="Enter decryption key in hex format" required>
+
+            <label for="iv">Decryption IV (Hex):</label>
+            <input type="text" id="iv" name="iv" placeholder="Enter decryption IV in hex format" required>
+
+            <button type="submit">Upload and Decrypt</button>
+        </form>
+
+        <div class="decrypted-files">
+            <h2>Decrypted Files</h2>
+            <ul id="file-list">
+                <!-- File list will be populated here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Handle file upload form submission
+        document.getElementById('upload-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('file', document.getElementById('file').files[0]);
+            formData.append('key', document.getElementById('key').value);
+            formData.append('iv', document.getElementById('iv').value);
+
+            try {
+                const response = await fetch('upload.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    alert('Success: ' + result);
+                    loadDecryptedFiles(); // Refresh the file list
+                } else {
+                    alert('Error: ' + result);
+                }
+            } catch (error) {
+                alert('An error occurred: ' + error.message);
+            }
+        });
+
+        // Load decrypted files and display them
+        async function loadDecryptedFiles() {
+            try {
+                const response = await fetch('decrypted_files/');
+                if (response.ok) {
+                    const parser = new DOMParser();
+                    const html = await response.text();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const fileList = doc.querySelectorAll('a');
+
+                    const fileListContainer = document.getElementById('file-list');
+                    fileListContainer.innerHTML = '';
+
+                    fileList.forEach(file => {
+                        if (file.href.endsWith('.dec')) {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = file.textContent;
+                            fileListContainer.appendChild(listItem);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load decrypted files:', error);
+            }
+        }
+
+        // Load decrypted files on page load
+        window.onload = loadDecryptedFiles;
+    </script>
+</body>
+</html>
